@@ -36,7 +36,7 @@ Filters combine with AND, and at least one is needed. Everything AMHDB has for t
 
 ## What a list shows
 
-- Year and month headings ("Year unknown" and "Month unknown" last), or artist headings.
+- Year headings, and month headings that carry the year ("March 1985"), with "Year unknown" and "Month unknown, 1985" last; or artist headings.
 - Each gig as a date tile ("Fri / 1 / Feb", with the year when no heading carries it). A one-gig list reads "Thursday 9 May 1991".
 - Dates follow AMHDB's precision fields: an unknown year shows as "year unknown", a weekday only appears when the full date is known, and nothing is guessed.
 - Multi-day gigs as a range.

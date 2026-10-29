@@ -35,7 +35,7 @@ class RendererTest extends AMHDB_Gigs_TestCase {
 		);
 		$xp = $this->dom( $html );
 		$this->assertSame( array( '1985', '1986' ), array_map( function ( $n ) { return $n->textContent; }, iterator_to_array( $xp->query( '//h3[@class="amhdb-gigs__year"]' ) ) ) );
-		$this->assertSame( array( 'February', 'March' ), array_map( function ( $n ) { return $n->textContent; }, iterator_to_array( $xp->query( '//h4[@class="amhdb-gigs__month"]' ) ) ) );
+		$this->assertSame( array( 'February 1985', 'March 1986' ), array_map( function ( $n ) { return $n->textContent; }, iterator_to_array( $xp->query( '//h4[@class="amhdb-gigs__month"]' ) ) ) );
 		$this->assertSame( 'amhdb-gigs-1-1985', $xp->query( '//h3' )->item( 0 )->getAttribute( 'id' ) );
 	}
 
@@ -78,6 +78,7 @@ class RendererTest extends AMHDB_Gigs_TestCase {
 		$entry = $this->entry( array( 'date' => null, 'date_precision' => 'day_month', 'year' => null, 'month' => 2, 'day' => 1 ) );
 		$xp    = $this->dom( $this->render( array( $entry, $this->entry( array( 'ids' => array( 2 ) ) ) ) ) );
 		$this->assertSame( 'Year unknown', $this->text( $xp, '(//h3[@class="amhdb-gigs__year"])[last()]' ) );
+		$this->assertSame( 'February, year unknown', $this->text( $xp, '(//h4[@class="amhdb-gigs__month"])[last()]' ) );
 		$this->assertSame( '02-01', $xp->query( '(//time[@class="amhdb-gig__date"])[last()]' )->item( 0 )->getAttribute( 'datetime' ) );
 		$this->assertSame( '1 Feb', $this->text( $xp, '(//time[@class="amhdb-gig__date"])[last()]' ) );
 	}
@@ -92,8 +93,8 @@ class RendererTest extends AMHDB_Gigs_TestCase {
 		$month = $this->entry( array( 'date' => null, 'date_precision' => 'month', 'day' => null, 'month' => 7 ) );
 		$year  = $this->entry( array( 'ids' => array( 2 ), 'date' => null, 'date_precision' => 'year', 'day' => null, 'month' => null ) );
 		$xp    = $this->dom( $this->render( array( $year, $month ) ) );
-		$this->assertSame( 'July', $this->text( $xp, '(//h4[@class="amhdb-gigs__month"])[1]' ), 'known months come first' );
-		$this->assertSame( 'Month unknown', $this->text( $xp, '(//h4[@class="amhdb-gigs__month"])[2]' ) );
+		$this->assertSame( 'July 1985', $this->text( $xp, '(//h4[@class="amhdb-gigs__month"])[1]' ), 'known months come first' );
+		$this->assertSame( 'Month unknown, 1985', $this->text( $xp, '(//h4[@class="amhdb-gigs__month"])[2]' ) );
 		$this->assertSame( '1985-07', $xp->query( '(//time)[1]' )->item( 0 )->getAttribute( 'datetime' ) );
 		$this->assertSame( 'Jul', $this->text( $xp, '(//time)[1]' ) );
 		$this->assertSame( 'Date unknown', $this->text( $xp, '(//time)[2]' ) );

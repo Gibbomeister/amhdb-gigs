@@ -80,7 +80,7 @@ class AMHDB_Gigs_Renderer {
 					'<%1$s class="amhdb-gigs__month" id="%2$s">%3$s</%1$s>',
 					$h_mon,
 					esc_attr( $this->anchor( $year_key, $month_key ) ),
-					esc_html( 'unknown' === $month_key ? __( 'Month unknown', 'amhdb-gigs' ) : $this->month_name( (int) $month_key ) )
+					esc_html( $this->month_heading( $year_key, $month_key ) )
 				);
 				$out .= $this->gig_list( $month_entries, false );
 			}
@@ -330,6 +330,23 @@ class AMHDB_Gigs_Renderer {
 	private function sub_heading(): string {
 		$level = (int) substr( $this->opts['heading'], 1 );
 		return 'h' . min( 6, $level + 1 );
+	}
+
+	/**
+	 * The month with its year, so a long list never leaves you guessing which
+	 * year you're in: "March 1985", "February, year unknown", "Month unknown, 1985".
+	 */
+	private function month_heading( string|int $year_key, string|int $month_key ): string {
+		if ( 'unknown' === $month_key ) {
+			/* translators: %s: year */
+			return sprintf( __( 'Month unknown, %s', 'amhdb-gigs' ), $year_key );
+		}
+		$month = $this->month_name( (int) $month_key );
+		if ( 'unknown' === $year_key ) {
+			/* translators: %s: month name */
+			return sprintf( __( '%s, year unknown', 'amhdb-gigs' ), $month );
+		}
+		return "$month $year_key";
 	}
 
 	private function month_name( int $month, string $format = 'F' ): string {
