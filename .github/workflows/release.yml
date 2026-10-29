@@ -48,7 +48,7 @@ jobs:
           mkdir -p build/amhdb-gigs
           rsync -a --exclude '.git' --exclude '.github' --exclude 'build' --exclude 'vendor' \
                    --exclude 'tests' --exclude 'composer.json' --exclude 'composer.lock' \
-                   --exclude 'phpunit.xml.dist' --exclude '.phpunit.cache' \
+                   --exclude 'phpunit.xml.dist' --exclude '.phpunit.cache' --exclude '.phpunit.result.cache' \
                    --exclude '.gitignore' --exclude '.DS_Store' \
                    ./ build/amhdb-gigs/
           cd build && zip -rq amhdb-gigs.zip amhdb-gigs
