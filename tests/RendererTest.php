@@ -138,12 +138,11 @@ class RendererTest extends AMHDB_Gigs_TestCase {
 		$this->assertSame( 1, $xp->query( '//p[@class="amhdb-gig__note"]' )->length, 'no empty note lines' );
 	}
 
-	public function test_report_link_makes_sense_on_its_own() {
-		$xp   = $this->dom( $this->render( array( $this->entry(), $this->entry( array( 'ids' => array( 2 ) ) ) ) ) );
-		$link = $xp->query( '//a[@class="amhdb-gig__report"]' )->item( 0 );
-		$this->assertStringStartsWith( 'mailto:', $link->getAttribute( 'href' ) );
-		$this->assertSame( 'Spotted something wrong? Report a correction to Bandanna, Bondi Lifesaver, 1 February 1985', trim( preg_replace( '/\s+/', ' ', $link->textContent ) ) );
-		$this->assertSame( 1, $xp->query( '(//a[@class="amhdb-gig__report"])[1]/span[@class="amhdb-gigs-visually-hidden"]' )->length );
+	public function test_no_correction_link_on_each_gig() {
+		$html = $this->render( array( $this->entry(), $this->entry( array( 'ids' => array( 2 ) ) ) ) );
+		$this->assertStringNotContainsString( 'amhdb-gig__report', $html );
+		$this->assertStringNotContainsString( 'mailto:', $html );
+		$this->assertStringNotContainsString( 'Spotted something wrong', $html );
 	}
 
 	// ── Grouping by artist ───────────────────────────────────────────────────

@@ -49,7 +49,7 @@ Create a page with these shortcodes and view it:
 - [ ] At **phone width** (dev tools, 390px): tiles stay beside the details, nothing runs off the right edge, and long venue names wrap.
 - [ ] With the **base font at 18px** (`html { font-size: 18px }` via dev tools or the theme): everything scales and nothing overlaps.
 - [ ] **Tab** through a list: every link shows a visible focus outline.
-- [ ] With a **screen reader** (VoiceOver: Cmd+F5), a "Spotted something wrong?" link reads as "… Report a correction to Bandanna, Bondi Lifesaver, 1 February 1985".
+- [ ] With a **screen reader** (VoiceOver: Cmd+F5), the headings and the list read in order, and each gig reads as one list item.
 - [ ] Nothing depends on colour alone: links are underlined by the theme.
 
 ## If something fails

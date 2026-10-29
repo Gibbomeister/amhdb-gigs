@@ -43,7 +43,6 @@ Filters combine with AND, and at least one is needed. Everything AMHDB has for t
 - On an act's list, the other acts on the bill ("with The Hitmen"); on other lists, every act.
 - The venue and suburb.
 - The act's notes, and a "Source: …" line where AMHDB has one.
-- A "Spotted something wrong?" link: a prefilled email naming the gig's AMHDB IDs.
 - Act and venue names link to their AMH post where AMHDB knows one, otherwise to AMHDB. There's no link back to the page the list is on.
 - With no gigs: "No gigs recorded yet."
 
@@ -66,7 +65,6 @@ div.amhdb-gigs-list
         span.amhdb-gig__venue
         p.amhdb-gig__note
         p.amhdb-gig__source
-        a.amhdb-gig__report
   p.amhdb-gigs__see-all
   p.amhdb-gigs__empty | p.amhdb-gigs__unavailable
 ```

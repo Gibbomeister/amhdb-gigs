@@ -72,10 +72,6 @@
 	font-size: 0.9em;
 }
 
-.amhdb-gig__report {
-	font-size: 0.85em;
-}
-
 .amhdb-gigs-list a:focus-visible {
 	outline: 2px solid currentColor;
 	outline-offset: 2px;
@@ -95,16 +91,4 @@
 	margin: 0 0 0 0.5em;
 	gap: 0.25em 0.6em;
 	font-size: 0.85em;
-}
-
-.amhdb-gigs-visually-hidden {
-	position: absolute !important;
-	width: 1px;
-	height: 1px;
-	margin: -1px;
-	padding: 0;
-	overflow: hidden;
-	clip: rect(0 0 0 0);
-	white-space: nowrap;
-	border: 0;
 }

@@ -6,7 +6,7 @@
  * contract once AMH's theme styles against them (#424), so change them only
  * with a major version: amhdb-gigs-list, amhdb-gigs, amhdb-gig, amhdb-gig__date
  * (with __dow, __day, __month, __year), amhdb-gig__end, amhdb-gig__act,
- * amhdb-gig__venue, amhdb-gig__note, amhdb-gig__source, amhdb-gig__report.
+ * amhdb-gig__venue, amhdb-gig__note, amhdb-gig__source.
  *
  * Dates follow AMHDB's precision fields (#429): a part the API sends as null is
  * unknown and is never shown, guessed or derived.
@@ -202,7 +202,6 @@ class AMHDB_Gigs_Renderer {
 			/* translators: %s: where the gig record comes from, e.g. a work diary */
 			$details .= '<p class="amhdb-gig__source">' . esc_html( sprintf( __( 'Source: %s', 'amhdb-gigs' ), $source ) ) . '</p>';
 		}
-		$details .= $this->report_link( $entry );
 
 		return '<li class="amhdb-gig">' . $this->dates( $entry, $show_year ) . '<div class="amhdb-gig__body">' . $details . '</div></li>';
 	}
@@ -302,37 +301,6 @@ class AMHDB_Gigs_Renderer {
 	private function same_page( string $url ): bool {
 		$here = $this->opts['current_url'];
 		return $here && untrailingslashit( $url ) === untrailingslashit( $here );
-	}
-
-	private function report_link( array $entry ): string {
-		if ( empty( $entry['report_url'] ) ) {
-			return '';
-		}
-		$what = implode(
-			', ',
-			array_filter(
-				array(
-					implode( ', ', array_column( $entry['acts'], 'name' ) ),
-					$entry['venue']['name'] ?? '',
-					$this->spoken_date( $entry ),
-				)
-			)
-		);
-		return '<a class="amhdb-gig__report" href="' . esc_url( $entry['report_url'] ) . '">'
-			. esc_html__( 'Spotted something wrong?', 'amhdb-gigs' )
-			/* translators: %s: acts, venue and date of the gig */
-			. '<span class="amhdb-gigs-visually-hidden"> ' . esc_html( sprintf( __( 'Report a correction to %s', 'amhdb-gigs' ), $what ) ) . '</span></a>';
-	}
-
-	/** "1 February 1985", "1 February, year unknown", "July 1985" or "1985". */
-	private function spoken_date( array $entry ): string {
-		$m = $entry['month'] ? $this->month_name( (int) $entry['month'], 'F' ) : '';
-		return match ( $entry['date_precision'] ) {
-			'day'       => "{$entry['day']} $m {$entry['year']}",
-			'day_month' => "{$entry['day']} $m, " . __( 'year unknown', 'amhdb-gigs' ),
-			'month'     => "$m {$entry['year']}",
-			default     => (string) $entry['year'],
-		};
 	}
 
 	private function see_all( array $data, int $shown ): string {
