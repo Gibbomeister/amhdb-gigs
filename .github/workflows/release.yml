@@ -1,0 +1,61 @@
+name: Release
+
+# Tag a version, get an installable zip attached to the release.
+#
+# The zip's top-level folder must be "amhdb-gigs", the same as the plugin
+# directory. A zip that unpacks to anything else installs as a second plugin
+# instead of updating the one that's there.
+#
+#   git tag v1.0.1 && git push origin v1.0.1
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Check the tag matches the plugin header
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          HEADER=$(grep -m1 '^ \* Version:' amhdb-gigs.php | sed 's/.*Version:[[:space:]]*//' | tr -d '[:space:]')
+          CONST=$(grep -m1 "AMHDB_GIGS_VERSION'," amhdb-gigs.php | sed "s/.*, '\(.*\)'.*/\1/")
+          echo "tag=$TAG header=$HEADER constant=$CONST"
+          if [ "$TAG" != "$HEADER" ] || [ "$TAG" != "$CONST" ]; then
+            echo "::error::Tag $TAG must match the Version header ($HEADER) and AMHDB_GIGS_VERSION ($CONST). Bump both first."
+            exit 1
+          fi
+
+      - name: Test
+        run: |
+          composer install --no-interaction --no-progress
+          vendor/bin/phpunit
+
+      - name: Build the zip
+        run: |
+          mkdir -p build/amhdb-gigs
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'build' --exclude 'vendor' \
+                   --exclude 'tests' --exclude 'composer.json' --exclude 'composer.lock' \
+                   --exclude 'phpunit.xml.dist' --exclude '.phpunit.cache' \
+                   --exclude '.gitignore' --exclude '.DS_Store' \
+                   ./ build/amhdb-gigs/
+          cd build && zip -rq amhdb-gigs.zip amhdb-gigs
+          unzip -l amhdb-gigs.zip
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/amhdb-gigs.zip
+          generate_release_notes: true

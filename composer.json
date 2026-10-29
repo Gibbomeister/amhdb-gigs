@@ -1,0 +1,18 @@
+{
+  "name": "gibbomeister/amhdb-gigs",
+  "description": "Gig lists from the Australian Music Database, for australianmusichistory.com.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.5"
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}
