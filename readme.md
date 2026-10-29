@@ -41,7 +41,7 @@ Filters combine with AND, and at least one is needed. Everything AMHDB has for t
 - Dates follow AMHDB's precision fields: an unknown year shows as "year unknown", a weekday only appears when the full date is known, and nothing is guessed.
 - Multi-day gigs as a range.
 - On an act's list, the other acts on the bill ("with The Hitmen"); on other lists, every act.
-- The venue and suburb.
+- The venue, suburb and state ("Bondi Lifesaver, Bondi Junction, NSW").
 - The act's notes, and a "Source: …" line where AMHDB has one.
 - Act and venue names link to their AMH post where AMHDB knows one, otherwise to AMHDB. There's no link back to the page the list is on.
 - With no gigs: "No gigs recorded yet."

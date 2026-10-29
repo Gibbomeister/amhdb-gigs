@@ -105,7 +105,15 @@ class RendererTest extends AMHDB_Gigs_TestCase {
 		$xp = $this->dom( $this->render( array( $this->entry(), $this->entry( array( 'ids' => array( 2 ) ) ) ) ) );
 		$this->assertSame( 'https://australianmusichistory.com/bandanna/', $xp->query( '//span[@class="amhdb-gig__act"]//a' )->item( 0 )->getAttribute( 'href' ) );
 		$this->assertSame( 'https://australianmusicdatabase.com/venues/bondi-lifesaver', $xp->query( '//span[@class="amhdb-gig__venue"]//a' )->item( 0 )->getAttribute( 'href' ) );
-		$this->assertSame( 'Bondi Lifesaver, Bondi Junction', $this->text( $xp, '//span[@class="amhdb-gig__venue"]' ) );
+		$this->assertSame( 'Bondi Lifesaver, Bondi Junction, NSW', $this->text( $xp, '//span[@class="amhdb-gig__venue"]' ) );
+	}
+
+	public function test_venue_without_a_state_or_city_leaves_them_out() {
+		$no_state = $this->entry( array( 'venue' => array_replace( $this->entry()['venue'], array( 'state' => null ) ) ) );
+		$no_city  = $this->entry( array( 'ids' => array( 2 ), 'venue' => array_replace( $this->entry()['venue'], array( 'city' => '' ) ) ) );
+		$xp       = $this->dom( $this->render( array( $no_state, $no_city ) ) );
+		$this->assertSame( 'Bondi Lifesaver, Bondi Junction', $this->text( $xp, '(//span[@class="amhdb-gig__venue"])[1]' ) );
+		$this->assertSame( 'Bondi Lifesaver, NSW', $this->text( $xp, '(//span[@class="amhdb-gig__venue"])[2]' ) );
 	}
 
 	public function test_no_link_back_to_the_page_the_list_is_on() {

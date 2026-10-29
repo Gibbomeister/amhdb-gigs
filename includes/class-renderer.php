@@ -283,9 +283,11 @@ class AMHDB_Gigs_Renderer {
 		return '<span class="amhdb-gig__act">' . $text . '</span>';
 	}
 
+	/** "Bondi Lifesaver, Bondi Junction, NSW", as on AMHDB's own pages. */
 	private function venue_line( array $venue ): string {
-		$city = empty( $venue['city'] ) ? '' : ', ' . esc_html( $venue['city'] );
-		return '<span class="amhdb-gig__venue">' . $this->link( $venue ) . $city . '</span>';
+		$place = array_filter( array( $venue['city'] ?? '', $venue['state'] ?? '' ), 'strlen' );
+		$where = $place ? ', ' . esc_html( implode( ', ', $place ) ) : '';
+		return '<span class="amhdb-gig__venue">' . $this->link( $venue ) . $where . '</span>';
 	}
 
 	/** An act or venue name, linked to its AMH post if it has one, else AMHDB. */
