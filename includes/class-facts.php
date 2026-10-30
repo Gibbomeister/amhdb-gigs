@@ -127,7 +127,8 @@ class AMHDB_Gigs_Facts {
 		foreach ( array_keys( self::ROWS ) as $row ) {
 			$field = trim( $overrides[ $row ] ?? '' );
 			if ( '' !== $field ) {
-				$rows[ $row ] = preg_replace( '/\R/', "<br>\n", wp_kses_post( $field ) );
+				// <br> alone: the template's white-space: pre-line would turn a kept newline into a blank line.
+				$rows[ $row ] = preg_replace( '/\R/', '<br>', wp_kses_post( $field ) );
 			} elseif ( ! empty( $from_amhdb[ $row ] ) ) {
 				$rows[ $row ] = implode( '<br>', array_map( 'esc_html', $from_amhdb[ $row ] ) );
 			}
