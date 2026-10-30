@@ -5,7 +5,8 @@
  *
  *   [amhdb_facts]              the panel: When, Where, Members, Recordings,
  *                              Label, Charted, Source, Gigs, and the Database button
- *   [amhdb_facts part="when"]  the amber date tile above the title
+ *   [amhdb_facts part="when"]  the amber date tile above the title: one range,
+ *                              e.g. "From 1989" when the When row lists periods
  *
  * Which record: a band, person or venue attribute; else a post field
  * amhdb_band, amhdb_person or amhdb_venue; else the AMHDB record whose amh_url
@@ -74,7 +75,7 @@ class AMHDB_Gigs_Facts {
 		$overrides['db_url'] = (string) get_post_meta( get_the_ID(), 'amh_db_url', true );
 
 		if ( 'when' === strtolower( $atts['part'] ) ) {
-			$when = self::rows( $facts, $overrides, false )['when'] ?? '';
+			$when = '' !== trim( $overrides['when'] ) ? self::rows( null, $overrides, false )['when'] : esc_html( self::span( $facts ) );
 			return '' === $when ? '' : '<p class="amh-when"><span>' . $when . '</span></p>';
 		}
 		return self::panel( $facts, $overrides, ! in_array( strtolower( $atts['gigs'] ), array( 'no', 'false', '0' ), true ) );
@@ -155,18 +156,46 @@ class AMHDB_Gigs_Facts {
 		}
 		switch ( $facts['type'] ?? '' ) {
 			case 'band':
-				$rows['when']  = array( (string) ( $facts['years_active']['label'] ?? '' ) );
+				$rows['when']  = self::periods( $facts['years_active'] ?? null );
 				$rows['where'] = array( (string) ( $facts['home_town']['label'] ?? '' ) );
 				break;
 			case 'person':
 				$rows['when'] = array( self::lifetime( $facts['born']['year'] ?? null, $facts['died']['year'] ?? null ) );
 				break;
 			case 'venue':
-				$rows['when']  = array( (string) ( $facts['years_open']['label'] ?? '' ) );
+				$rows['when']  = self::periods( $facts['years_open'] ?? null );
 				$rows['where'] = array( self::join( array( $facts['city'] ?? '', $facts['state'] ?? '' ) ) );
 				break;
 		}
 		return array_map( fn( $lines ) => array_values( array_filter( $lines, 'strlen' ) ), $rows );
+	}
+
+	/** One line per active period ("1989 to 1996", "From 2019"), or the label from an API without periods. */
+	private static function periods( ?array $years ): array {
+		if ( ! $years ) {
+			return array();
+		}
+		if ( empty( $years['periods'] ) ) {
+			return array( (string) ( $years['label'] ?? '' ) );
+		}
+		return array_map( fn( $p ) => ucfirst( (string) ( $p['label'] ?? '' ) ), $years['periods'] );
+	}
+
+	/** One range for the date tile: first start to last end ("From 1989"), or born to died. */
+	private static function span( ?array $facts ): string {
+		switch ( $facts['type'] ?? '' ) {
+			case 'band':
+				$years = $facts['years_active'] ?? null;
+				break;
+			case 'venue':
+				$years = $facts['years_open'] ?? null;
+				break;
+			case 'person':
+				return self::lifetime( $facts['born']['year'] ?? null, $facts['died']['year'] ?? null );
+			default:
+				return '';
+		}
+		return (string) ( $years['span'] ?? $years['label'] ?? '' );
 	}
 
 	/** "Andy Cichon, vocals and guitar (1991–1994)": instruments, or AMHDB's details when there are none. */

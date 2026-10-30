@@ -158,6 +158,28 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 		$this->assertSame( array( 'When' => '1975 to 1989', 'Where' => 'St Kilda, VIC', 'Gigs in the Database' => '2 (1988 to 1991)' ), $this->rows( AMHDB_Gigs_Facts::panel( $venue, array() ) ) );
 	}
 
+	public function test_several_periods_list_in_the_panel_and_span_on_the_tile() {
+		$this->serve(
+			$this->band(
+				array(
+					'years_active' => array(
+						'from'    => 1989,
+						'to'      => null,
+						'label'   => '1989 to 1996, 2007 to 2013, from 2019',
+						'span'    => 'From 1989',
+						'periods' => array(
+							array( 'from' => 1989, 'to' => 1996, 'label' => '1989 to 1996' ),
+							array( 'from' => 2007, 'to' => 2013, 'label' => '2007 to 2013' ),
+							array( 'from' => 2019, 'to' => null, 'label' => 'from 2019' ),
+						),
+					),
+				)
+			)
+		);
+		$this->assertSame( '1989 to 1996<br>2007 to 2013<br>From 2019', $this->rows( AMHDB_Gigs_Facts::shortcode( array() ) )['When'] );
+		$this->assertSame( '<p class="amh-when"><span>From 1989</span></p>', AMHDB_Gigs_Facts::shortcode( array( 'part' => 'when' ) ) );
+	}
+
 	public function test_the_when_tile() {
 		$this->serve( $this->band() );
 		$this->assertSame( '<p class="amh-when"><span>1991 to 1994</span></p>', AMHDB_Gigs_Facts::shortcode( array( 'part' => 'when' ) ) );
