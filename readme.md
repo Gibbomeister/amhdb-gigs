@@ -39,6 +39,21 @@ Slugs are the ones in AMHDB's URLs: `australianmusicdatabase.com/bands/bandanna`
 
 Filters combine with AND, and at least one is needed. Everything AMHDB has for the filter is shown on one page, including gigs added later.
 
+## Facts panel
+
+```
+[amhdb_facts]
+[amhdb_facts part="when"]
+```
+
+`[amhdb_facts]` fills the facts panel on AMH story pages from AMHDB's facts API (AMHDB `docs/facts-api.md`), so facts are entered once, in AMHDB (#449). It outputs the markup the Post 2026 template already styles: `div.amh-card > p.amh-card-row > span.amh-card-label + span.amh-card-value`, then `p.amh-card-db > a` for the "In the Australian Music Database" button. `[amhdb_facts part="when"]` outputs the amber date tile, `<p class="amh-when"><span>…</span></p>`, or nothing.
+
+- **Which record:** a `band`, `person` or `venue` attribute; else a post field `amhdb_band`, `amhdb_person` or `amhdb_venue` (a slug); else the AMHDB record whose `amh_url` is this post.
+- **Rows from AMHDB:** Members (name, details, years), Recordings ("Live With It, EP, 1991"), Label, Charted ("Live With It, No. 42 (1991)"), Source, and "Gigs in the Database: 31 (1991 to 1992)" (`gigs="no"` hides it). A person gets Bands and When (born to died). A venue gets Where (suburb, state).
+- **Overrides:** a filled `amh_when`, `amh_where`, `amh_members`, `amh_recordings`, `amh_label`, `amh_charted`, `amh_source` or `amh_db_url` post field replaces that row, for story-specific wording. Line breaks become `<br>`. AMHDB has no years active or home town for a band, so When and Where for a band come only from the post fields.
+- **Nothing known:** with no AMHDB record and no fields, it outputs nothing, and the template hides the empty panel. With no record but some fields, the fields still show.
+- **Caching:** like gig lists: a day fresh, then the last-good copy while WP-Cron refreshes. A post AMHDB doesn't know is remembered for a day, so it isn't asked about on every view. **Clear cache** clears panels too.
+
 ## What a list shows
 
 - Year headings, and month headings that carry the year ("March 1985"), with "Year unknown" and "Month unknown, 1985" last; or artist headings.
