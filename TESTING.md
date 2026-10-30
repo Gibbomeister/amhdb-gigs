@@ -52,6 +52,22 @@ Create a page with these shortcodes and view it:
 - [ ] With a **screen reader** (VoiceOver: Cmd+F5), the headings and the list read in order, and each gig reads as one list item.
 - [ ] Nothing depends on colour alone: links are underlined by the theme.
 
+## 5. This week in history (#447)
+
+Needs AMHDB with the `md_from`/`md_to` API params (#446).
+
+```
+[amhdb_gigs this_week="yes" limit="10"]
+[amhdb_gigs this_week="yes" per_day="2" random="yes" limit="14"]
+[amhdb_gigs artist="bandanna" this_week="yes" sort="desc"]
+```
+
+- [ ] The first list starts today (site timezone) and ends six days on, in any year: year headings, no month headings, no "See all" link.
+- [ ] The second has at most two gigs per day of the year. Reloads (and **Refresh all now**) keep the same pick all day.
+- [ ] Tools → AMHDB Gigs shows each list with today's `seed`. `wp cron event list` shows `amhdb_gigs_new_day` at 00:05 tomorrow.
+- [ ] `wp cron event run amhdb_gigs_new_day` the next day (or after changing the site date) replaces each list with that day's.
+- [ ] With AMHDB unreachable and the cache cleared, the list shows the "on the Australian Music Database" line, never an old week.
+
 ## If something fails
 
 - **A list is blank, with an HTML comment in the source:** the shortcode has no filter attribute.

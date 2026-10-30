@@ -27,8 +27,9 @@ class WP_Fake {
 	public static $requests   = array();
 	/** @var callable|null fn( string $url, array $args ): array|WP_Error */
 	public static $http       = null;
-	public static $now        = 1761700000;
+	public static $now        = 1761700000; // 29 Oct 2025, 12:06pm in Sydney.
 	public static $permalink  = 'https://australianmusichistory.com/some-post/';
+	public static $timezone   = 'Australia/Sydney';
 
 	public static function reset() {
 		self::$transients = array();
@@ -41,6 +42,7 @@ class WP_Fake {
 		self::$http       = null;
 		self::$now        = 1761700000;
 		self::$permalink  = 'https://australianmusichistory.com/some-post/';
+		self::$timezone   = 'Australia/Sydney';
 	}
 }
 
@@ -175,6 +177,25 @@ function wp_next_scheduled( $hook, $args = array() ) {
 function wp_schedule_single_event( $time, $hook, $args = array() ) {
 	WP_Fake::$scheduled[] = array( 'time' => $time, 'hook' => $hook, 'args' => $args );
 	return true;
+}
+
+function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {
+	WP_Fake::$scheduled[] = array( 'time' => $timestamp, 'hook' => $hook, 'args' => $args, 'recurrence' => $recurrence );
+	return true;
+}
+
+function wp_clear_scheduled_hook( $hook, $args = array() ) {
+	$before = count( WP_Fake::$scheduled );
+	WP_Fake::$scheduled = array_values( array_filter( WP_Fake::$scheduled, fn( $event ) => $event['hook'] !== $hook ) );
+	return $before - count( WP_Fake::$scheduled );
+}
+
+function wp_timezone() {
+	return new DateTimeZone( WP_Fake::$timezone );
+}
+
+function current_datetime() {
+	return ( new DateTimeImmutable( '@' . WP_Fake::$now ) )->setTimezone( wp_timezone() );
 }
 
 function wp_remote_get( $url, $args = array() ) {

@@ -14,6 +14,12 @@
  * failed refresh keeps the last-good copy and waits a while before trying
  * again, so an outage doesn't mean a request on every view.
  *
+ * A "this week" list (#447) is a new list each day: its query carries the
+ * day's month-day range and the start date, so the cache key changes at
+ * midnight and a last-good copy is never from another day. Just after midnight
+ * Sydney time, new_day() swaps each one for the new day's and fetches it, so
+ * no visitor waits on the first view.
+ *
  * API reference: docs/gigs-api.md in the AMHDB repo.
  *
  * @package AMHDB_Gigs
@@ -24,7 +30,10 @@ defined( 'ABSPATH' ) || exit;
 class AMHDB_Gigs_Api {
 
 	public const HOOK      = 'amhdb_gigs_refresh';
-	public const FILTERS   = array( 'band', 'person', 'artist', 'venue', 'tag', 'year', 'month', 'from', 'to', 'sort', 'limit' );
+	public const NEW_DAY   = 'amhdb_gigs_new_day';
+	public const FILTERS   = array( 'band', 'person', 'artist', 'venue', 'tag', 'year', 'month', 'from', 'to', 'sort', 'limit', 'per_day', 'random', 'md_from', 'md_to', 'seed' );
+	/** Kept in the query (and so the cache key) but not sent to AMHDB. */
+	private const LOCAL    = array( 'this_week' );
 	private const FRESH    = DAY_IN_SECONDS;
 	private const BACK_OFF = 15 * MINUTE_IN_SECONDS;
 	private const TIMEOUT  = 5;
@@ -32,6 +41,45 @@ class AMHDB_Gigs_Api {
 
 	public static function hooks(): void {
 		add_action( self::HOOK, array( __CLASS__, 'refresh' ) );
+		add_action( self::NEW_DAY, array( __CLASS__, 'new_day' ) );
+
+		// A single event each night, not a daily one, so a daylight-saving
+		// change never moves it off midnight.
+		if ( ! wp_next_scheduled( self::NEW_DAY ) ) {
+			wp_schedule_single_event( current_datetime()->modify( 'tomorrow 00:05' )->getTimestamp(), self::NEW_DAY );
+		}
+	}
+
+	public static function deactivate(): void {
+		wp_clear_scheduled_hook( self::NEW_DAY );
+		wp_clear_scheduled_hook( self::HOOK );
+	}
+
+	/**
+	 * A "this week" query for the $days days from $start, in any year:
+	 * md_from/md_to for AMHDB, and the start date as the seed for random picks
+	 * (and in the cache key).
+	 */
+	public static function this_week( array $query, int $days, DateTimeImmutable $start ): array {
+		$query['this_week'] = (string) $days;
+		$query['md_from']   = $start->format( 'm-d' );
+		$query['md_to']     = $start->modify( '+' . ( $days - 1 ) . ' days' )->format( 'm-d' );
+		$query['seed']      = $start->format( 'Y-m-d' );
+		return self::normalise( $query );
+	}
+
+	/** Swap each "this week" list for today's, fetch it, and forget the old one. */
+	public static function new_day(): void {
+		$today = current_datetime()->setTime( 0, 0 );
+		foreach ( self::known_queries() as $key => $query ) {
+			if ( ! isset( $query['this_week'] ) || $today->format( 'Y-m-d' ) === ( $query['seed'] ?? '' ) ) {
+				continue;
+			}
+			self::forget( $key );
+			$fresh = self::this_week( $query, (int) $query['this_week'], $today );
+			self::remember( self::key( $fresh ), $fresh );
+			self::refresh( $fresh );
+		}
 	}
 
 	/**
@@ -97,9 +145,7 @@ class AMHDB_Gigs_Api {
 	/** Forget every cached list; each is fetched again on its next view. */
 	public static function clear(): void {
 		foreach ( array_keys( self::known_queries() ) as $key ) {
-			delete_transient( "amhdb_gigs_{$key}" );
-			delete_transient( "amhdb_gigs_backoff_{$key}" );
-			delete_option( "amhdb_gigs_last_{$key}" );
+			self::forget( $key );
 		}
 		delete_option( self::REGISTRY );
 	}
@@ -117,7 +163,7 @@ class AMHDB_Gigs_Api {
 	}
 
 	public static function url( array $query ): string {
-		$params = array_intersect_key( self::normalise( $query ), array_flip( self::FILTERS ) );
+		$params = array_diff_key( self::normalise( $query ), array_flip( self::LOCAL ) );
 		unset( $params['artist'] );
 		return self::endpoint() . '?' . http_build_query( $params );
 	}
@@ -131,7 +177,7 @@ class AMHDB_Gigs_Api {
 	/** Known, non-empty filters in a fixed order, so equal lists share a key. */
 	private static function normalise( array $query ): array {
 		$out = array();
-		foreach ( self::FILTERS as $filter ) {
+		foreach ( array_merge( self::FILTERS, self::LOCAL ) as $filter ) {
 			if ( isset( $query[ $filter ] ) && '' !== (string) $query[ $filter ] ) {
 				$out[ $filter ] = (string) $query[ $filter ];
 			}
@@ -191,6 +237,18 @@ class AMHDB_Gigs_Api {
 			return;
 		}
 		wp_schedule_single_event( time(), self::HOOK, array( $query ) );
+	}
+
+	private static function forget( string $key ): void {
+		delete_transient( "amhdb_gigs_{$key}" );
+		delete_transient( "amhdb_gigs_backoff_{$key}" );
+		delete_option( "amhdb_gigs_last_{$key}" );
+
+		$known = self::known_queries();
+		if ( isset( $known[ $key ] ) ) {
+			unset( $known[ $key ] );
+			update_option( self::REGISTRY, $known, false );
+		}
 	}
 
 	private static function remember( string $key, array $query ): void {

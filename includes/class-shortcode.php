@@ -6,9 +6,13 @@
  * Filters (combine with AND; at least one is needed):
  *   artist  AMHDB band or person slug (tries a band first)
  *   band, person, venue, tag (a tour), year, month, from, to (YYYY-MM-DD)
+ *   this_week     yes: today and the next six days, in any year (#447)
+ *   days          with this_week: how many days (default 7)
  * Display:
  *   sort          asc (default) or desc
  *   limit         show the first N, with a "See all" link to AMHDB
+ *   per_day       at most N gigs for each day of the year
+ *   random        with this_week and per_day, yes: a random pick each day
  *   group_artists yes: a heading per artist; no (default): year/month headings
  *   menu          yes: a jump menu of year/month (or artist) links
  *   menu_count    yes: counts in the jump menu
@@ -36,6 +40,10 @@ class AMHDB_Gigs_Shortcode {
 		'to'            => '',
 		'sort'          => '',
 		'limit'         => '',
+		'this_week'     => 'no',
+		'days'          => '7',
+		'per_day'       => '',
+		'random'        => 'no',
 		'group_artists' => 'no',
 		'menu'          => 'no',
 		'menu_count'    => 'no',
@@ -53,12 +61,21 @@ class AMHDB_Gigs_Shortcode {
 	 * @param array|string $atts Shortcode attributes ('' when there are none).
 	 */
 	public static function render( $atts ): string {
-		$atts  = shortcode_atts( self::DEFAULTS, is_array( $atts ) ? $atts : array(), self::TAG );
-		$query = array_intersect_key( $atts, array_flip( AMHDB_Gigs_Api::FILTERS ) );
+		$atts      = shortcode_atts( self::DEFAULTS, is_array( $atts ) ? $atts : array(), self::TAG );
+		$this_week = self::yes( $atts['this_week'] );
+		$query     = array_intersect_key( $atts, array_flip( array_diff( AMHDB_Gigs_Api::FILTERS, array( 'random', 'md_from', 'md_to', 'seed' ) ) ) );
 
-		$filters = array_diff( AMHDB_Gigs_Api::FILTERS, array( 'sort', 'limit' ) );
+		if ( $this_week ) {
+			if ( self::yes( $atts['random'] ) ) {
+				$query['random'] = '1';
+			}
+			$days  = (int) $atts['days'];
+			$query = AMHDB_Gigs_Api::this_week( $query, $days >= 1 && $days <= 366 ? $days : 7, current_datetime()->setTime( 0, 0 ) );
+		}
+
+		$filters = array_diff( AMHDB_Gigs_Api::FILTERS, array( 'sort', 'limit', 'per_day', 'random', 'seed' ) );
 		if ( ! array_filter( array_intersect_key( $query, array_flip( $filters ) ), 'strlen' ) ) {
-			return '<!-- amhdb_gigs: give at least one of artist, band, person, venue, tag, year, from or to -->';
+			return '<!-- amhdb_gigs: give at least one of artist, band, person, venue, tag, year, from, to or this_week -->';
 		}
 
 		wp_enqueue_style( 'amhdb-gigs', plugins_url( 'assets/amhdb-gigs.css', AMHDB_GIGS_FILE ), array(), AMHDB_GIGS_VERSION );
@@ -80,6 +97,10 @@ class AMHDB_Gigs_Shortcode {
 				'menu'          => self::yes( $atts['menu'] ),
 				'menu_count'    => self::yes( $atts['menu_count'] ),
 				'current_url'   => (string) get_permalink(),
+				// Year headings only, and no "See all": AMHDB has no page for this list.
+				'months'        => ! $this_week,
+				'see_all'       => ! $this_week,
+				'empty'         => $this_week ? __( 'No gigs recorded for this week yet.', 'amhdb-gigs' ) : null,
 			)
 		);
 	}
