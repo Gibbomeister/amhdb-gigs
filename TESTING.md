@@ -68,6 +68,15 @@ Needs AMHDB with the `md_from`/`md_to` API params (#446).
 - [ ] `wp cron event run amhdb_gigs_new_day` the next day (or after changing the site date) replaces each list with that day's.
 - [ ] With AMHDB unreachable and the cache cleared, the list shows the "on the Australian Music Database" line, never an old week.
 
+## 6. Facts panel (#449)
+
+Needs AMHDB with the facts API (#448). Make a post with `[amhdb_facts part="when"]` and `[amhdb_facts]`.
+
+- [ ] With post field `amhdb_band` = `judge-mercy` and no `amh_*` fields: the panel shows Members, Recordings (once #450 is in), Source, the gigs row and the Database button.
+- [ ] Set `amh_when` and `amh_members`: those rows show the field's wording, line breaks kept; the others still come from AMHDB. The amber tile shows `amh_when`.
+- [ ] A post AMHDB doesn't know, with no fields: no panel at all.
+- [ ] On a post whose permalink is some act's `amh_url` in AMHDB, with no `amhdb_*` field: the panel finds it by address.
+
 ## If something fails
 
 - **A list is blank, with an HTML comment in the source:** the shortcode has no filter attribute.

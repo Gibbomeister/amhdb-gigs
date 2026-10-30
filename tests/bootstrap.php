@@ -30,6 +30,8 @@ class WP_Fake {
 	public static $now        = 1761700000; // 29 Oct 2025, 12:06pm in Sydney.
 	public static $permalink  = 'https://australianmusichistory.com/some-post/';
 	public static $timezone   = 'Australia/Sydney';
+	public static $post_id    = 68;
+	public static $meta       = array();
 
 	public static function reset() {
 		self::$transients = array();
@@ -43,6 +45,8 @@ class WP_Fake {
 		self::$now        = 1761700000;
 		self::$permalink  = 'https://australianmusichistory.com/some-post/';
 		self::$timezone   = 'Australia/Sydney';
+		self::$post_id    = 68;
+		self::$meta       = array();
 	}
 }
 
@@ -238,6 +242,19 @@ function home_url() {
 	return 'https://australianmusichistory.com';
 }
 
+function get_the_ID() {
+	return WP_Fake::$post_id;
+}
+
+function get_post_meta( $post_id, $key = '', $single = false ) {
+	return WP_Fake::$meta[ $post_id ][ $key ] ?? '';
+}
+
+/** Close enough for tests: the real one also allows a set list of tags. */
+function wp_kses_post( $text ) {
+	return strip_tags( (string) $text, '<a><em><strong><i><b><br>' );
+}
+
 function get_permalink() {
 	return WP_Fake::$permalink;
 }
@@ -250,7 +267,7 @@ define( 'AMHDB_GIGS_VERSION', 'test' );
 define( 'AMHDB_GIGS_FILE', dirname( __DIR__ ) . '/amhdb-gigs.php' );
 define( 'AMHDB_GIGS_API', 'https://australianmusicdatabase.com/api/v1/gigs' );
 
-foreach ( array( 'renderer', 'api', 'shortcode' ) as $class_file ) {
+foreach ( array( 'renderer', 'api', 'shortcode', 'facts' ) as $class_file ) {
 	$path = dirname( __DIR__ ) . "/includes/class-$class_file.php";
 	if ( file_exists( $path ) ) {
 		require $path;

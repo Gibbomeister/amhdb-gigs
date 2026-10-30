@@ -53,6 +53,7 @@ class AMHDB_Gigs_Api {
 	public static function deactivate(): void {
 		wp_clear_scheduled_hook( self::NEW_DAY );
 		wp_clear_scheduled_hook( self::HOOK );
+		wp_clear_scheduled_hook( AMHDB_Gigs_Facts::HOOK );
 	}
 
 	/**
@@ -148,6 +149,9 @@ class AMHDB_Gigs_Api {
 			self::forget( $key );
 		}
 		delete_option( self::REGISTRY );
+		if ( class_exists( 'AMHDB_Gigs_Facts' ) ) {
+			AMHDB_Gigs_Facts::clear();
+		}
 	}
 
 	/** @return array<string, array> Filter sets keyed by cache key. */
@@ -189,6 +193,11 @@ class AMHDB_Gigs_Api {
 		return defined( 'AMHDB_GIGS_API' ) ? AMHDB_GIGS_API : 'https://australianmusicdatabase.com/api/v1/gigs';
 	}
 
+	/** AMHDB's API root, e.g. https://australianmusicdatabase.com/api/v1, for its other endpoints. */
+	public static function root(): string {
+		return preg_replace( '#/gigs/?$#', '', self::endpoint() );
+	}
+
 	/** artist= could be a band or a person on AMHDB; try a band first. */
 	private static function fetch_artist( array $query, string $etag ) {
 		$slug = $query['artist'];
@@ -204,6 +213,19 @@ class AMHDB_Gigs_Api {
 	 * @return array{data: array, etag: string}|'not_modified'|false
 	 */
 	private static function fetch( array $query, string $etag ) {
+		$result = self::request( self::url( $query ), $etag );
+		if ( 'not_found' === $result || ( is_array( $result ) && ! isset( $result['data']['gigs'] ) ) ) {
+			return false;
+		}
+		return $result;
+	}
+
+	/**
+	 * GET a URL on AMHDB, sending the ETag if there is one.
+	 *
+	 * @return array{data: array, etag: string}|'not_modified'|'not_found'|false
+	 */
+	public static function request( string $url, string $etag ) {
 		$headers = array(
 			'Accept'     => 'application/json',
 			'User-Agent' => 'AMHDB-Gigs/' . AMHDB_GIGS_VERSION . '; ' . home_url(), // So AMHDB's logs say who's calling.
@@ -212,7 +234,7 @@ class AMHDB_Gigs_Api {
 			$headers['If-None-Match'] = $etag;
 		}
 
-		$response = wp_remote_get( self::url( $query ), array( 'timeout' => self::TIMEOUT, 'headers' => $headers ) );
+		$response = wp_remote_get( $url, array( 'timeout' => self::TIMEOUT, 'headers' => $headers ) );
 		if ( is_wp_error( $response ) ) {
 			return false;
 		}
@@ -221,12 +243,15 @@ class AMHDB_Gigs_Api {
 		if ( 304 === $code ) {
 			return 'not_modified';
 		}
+		if ( 404 === $code ) {
+			return 'not_found';
+		}
 		if ( 200 !== $code ) {
 			return false;
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-		if ( ! is_array( $data ) || ! isset( $data['gigs'] ) ) {
+		if ( ! is_array( $data ) ) {
 			return false;
 		}
 		return array( 'data' => $data, 'etag' => (string) wp_remote_retrieve_header( $response, 'etag' ) );
