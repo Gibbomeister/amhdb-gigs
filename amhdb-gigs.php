@@ -3,7 +3,7 @@
  * Plugin Name:       AMHDB Gigs
  * Plugin URI:        https://github.com/Gibbomeister/amhdb-gigs
  * Description:       Gig lists and story facts panels from the Australian Music Database, rendered into the page with [amhdb_gigs] and [amhdb_facts]. Replaces GigPress on australianmusichistory.com.
- * Version:           1.5.0
+ * Version:           1.5.1
  * Requires at least: 6.4
  * Requires PHP:      8.2
  * Author:            My Business Engine
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'AMHDB_GIGS_VERSION', '1.5.0' );
+define( 'AMHDB_GIGS_VERSION', '1.5.1' );
 define( 'AMHDB_GIGS_FILE', __FILE__ );
 define( 'AMHDB_GIGS_PATH', plugin_dir_path( __FILE__ ) );
 

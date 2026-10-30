@@ -122,7 +122,7 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 
 		$this->assertSame( '1991–94, reformed 2005', $rows['When'] );
 		$this->assertSame( 'Melbourne, VIC', $rows['Where'], 'rows without a field still come from AMHDB' );
-		$this->assertSame( "Andy Cichon, vocals and guitar<br>\nCraig Forster, bass", $rows['Members'] );
+		$this->assertSame( "Andy Cichon, vocals and guitar<br>Craig Forster, bass", $rows['Members'] );
 		$this->assertSame( 'Rock Detector, <em>Juke</em> 1992', $rows['Source'] );
 		$this->assertSame( 'Live With It, EP, 1991<br>Protocol So Holy, Album, 1993', $rows['Recordings'], 'rows without a field still come from AMHDB' );
 		$this->assertStringContainsString( 'href="https://australianmusicdatabase.com/bands/judge-mercy-2"', $html );
