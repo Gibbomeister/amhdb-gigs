@@ -152,11 +152,18 @@ class AMHDB_Gigs_Facts {
 				$rows['charted'][] = $r['title'] . ', No. ' . $r['highest_position'] . ( $year ? " ($year)" : '' );
 			}
 		}
-		if ( 'person' === ( $facts['type'] ?? '' ) ) {
-			$rows['when'] = array( self::lifetime( $facts['born']['year'] ?? null, $facts['died']['year'] ?? null ) );
-		}
-		if ( 'venue' === ( $facts['type'] ?? '' ) ) {
-			$rows['where'] = array( self::join( array( $facts['city'] ?? '', $facts['state'] ?? '' ) ) );
+		switch ( $facts['type'] ?? '' ) {
+			case 'band':
+				$rows['when']  = array( (string) ( $facts['years_active']['label'] ?? '' ) );
+				$rows['where'] = array( (string) ( $facts['home_town']['label'] ?? '' ) );
+				break;
+			case 'person':
+				$rows['when'] = array( self::lifetime( $facts['born']['year'] ?? null, $facts['died']['year'] ?? null ) );
+				break;
+			case 'venue':
+				$rows['when']  = array( (string) ( $facts['years_open']['label'] ?? '' ) );
+				$rows['where'] = array( self::join( array( $facts['city'] ?? '', $facts['state'] ?? '' ) ) );
+				break;
 		}
 		return array_map( fn( $lines ) => array_values( array_filter( $lines, 'strlen' ) ), $rows );
 	}

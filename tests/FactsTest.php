@@ -27,6 +27,8 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 				'slug'       => 'judge-mercy',
 				'amhdb_url'  => 'https://australianmusicdatabase.com/bands/judge-mercy',
 				'amh_url'    => 'https://australianmusichistory.com/judge-mercy/',
+				'years_active' => array( 'from' => 1991, 'to' => 1994, 'label' => '1991 to 1994' ),
+				'home_town'  => array( 'city' => 'Melbourne', 'state' => 'VIC', 'label' => 'Melbourne, VIC' ),
 				'members'    => array(
 					array( 'name' => 'Andy Cichon', 'instruments' => array( 'vocals', 'guitar' ), 'details' => 'Founder', 'joined_year' => 1991, 'left_year' => 1994 ),
 					array( 'name' => 'Craig Foster', 'instruments' => array( 'bass' ), 'details' => null, 'joined_year' => 1992, 'left_year' => null ),
@@ -91,6 +93,8 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 		$this->assertStringStartsWith( '<div class="amh-card"><p class="amh-card-row"><span class="amh-card-label">', $html );
 		$this->assertSame(
 			array(
+				'When'                 => '1991 to 1994',
+				'Where'                => 'Melbourne, VIC',
 				'Members'              => 'Andy Cichon, vocals and guitar (1991–1994)<br>Craig Foster, bass (from 1992)<br>Ismet Osmanovic, guitar, keyboards and backing vocals<br>Mick O&#039;Shea, Drums',
 				'Recordings'           => 'Live With It, EP, 1991<br>Protocol So Holy, Album, 1993',
 				'Label'                => 'Mushroom',
@@ -107,7 +111,7 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 		$this->serve( $this->band() );
 		$this->meta(
 			array(
-				'amh_when'    => '1991 to 1994',
+				'amh_when'    => '1991–94, reformed 2005',
 				'amh_members' => "Andy Cichon, vocals and guitar\nCraig Forster, bass",
 				'amh_source'  => 'Rock Detector, <em>Juke</em> 1992',
 				'amh_db_url'  => 'https://australianmusicdatabase.com/bands/judge-mercy-2',
@@ -116,12 +120,13 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 		$html = AMHDB_Gigs_Facts::shortcode( array() );
 		$rows = $this->rows( $html );
 
-		$this->assertSame( '1991 to 1994', $rows['When'] );
+		$this->assertSame( '1991–94, reformed 2005', $rows['When'] );
+		$this->assertSame( 'Melbourne, VIC', $rows['Where'], 'rows without a field still come from AMHDB' );
 		$this->assertSame( "Andy Cichon, vocals and guitar<br>\nCraig Forster, bass", $rows['Members'] );
 		$this->assertSame( 'Rock Detector, <em>Juke</em> 1992', $rows['Source'] );
 		$this->assertSame( 'Live With It, EP, 1991<br>Protocol So Holy, Album, 1993', $rows['Recordings'], 'rows without a field still come from AMHDB' );
 		$this->assertStringContainsString( 'href="https://australianmusicdatabase.com/bands/judge-mercy-2"', $html );
-		$this->assertSame( array_keys( $rows ), array( 'When', 'Members', 'Recordings', 'Label', 'Charted', 'Source', 'Gigs in the Database' ) );
+		$this->assertSame( array_keys( $rows ), array( 'When', 'Where', 'Members', 'Recordings', 'Label', 'Charted', 'Source', 'Gigs in the Database' ) );
 	}
 
 	public function test_gigs_row_can_be_turned_off_and_is_left_out_with_no_gigs() {
@@ -147,17 +152,24 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 
 		$venue = array(
 			'type' => 'venue', 'name' => 'The Venue', 'city' => 'St Kilda', 'state' => 'VIC', 'amhdb_url' => 'https://australianmusicdatabase.com/venues/the-venue',
+			'years_open' => array( 'from' => 1975, 'to' => 1989, 'label' => '1975 to 1989' ),
 			'gigs' => array( 'count' => 2, 'first' => array( 'year' => 1988 ), 'last' => array( 'year' => 1991 ) ), 'sources' => array(),
 		);
-		$this->assertSame( array( 'Where' => 'St Kilda, VIC', 'Gigs in the Database' => '2 (1988 to 1991)' ), $this->rows( AMHDB_Gigs_Facts::panel( $venue, array() ) ) );
+		$this->assertSame( array( 'When' => '1975 to 1989', 'Where' => 'St Kilda, VIC', 'Gigs in the Database' => '2 (1988 to 1991)' ), $this->rows( AMHDB_Gigs_Facts::panel( $venue, array() ) ) );
 	}
 
 	public function test_the_when_tile() {
 		$this->serve( $this->band() );
-		$this->assertSame( '', AMHDB_Gigs_Facts::shortcode( array( 'part' => 'when' ) ), 'AMHDB has no years active for a band' );
-
-		$this->meta( array( 'amh_when' => '1991 to 1994' ) );
 		$this->assertSame( '<p class="amh-when"><span>1991 to 1994</span></p>', AMHDB_Gigs_Facts::shortcode( array( 'part' => 'when' ) ) );
+
+		$this->meta( array( 'amh_when' => 'Late 1991' ) );
+		$this->assertSame( '<p class="amh-when"><span>Late 1991</span></p>', AMHDB_Gigs_Facts::shortcode( array( 'part' => 'when' ) ) );
+
+		$this->meta( array() );
+		WP_Fake::$transients = array();
+		WP_Fake::$options    = array();
+		$this->serve( $this->band( array( 'years_active' => null ) ) );
+		$this->assertSame( '', AMHDB_Gigs_Facts::shortcode( array( 'part' => 'when' ) ), 'nothing known, no tile' );
 	}
 
 	// ── Nothing in AMHDB ─────────────────────────────────────────────────────
