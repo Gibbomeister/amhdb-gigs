@@ -26,6 +26,9 @@ class AMHDB_Gigs_Renderer {
 		'menu'          => false,
 		'menu_count'    => false,
 		'current_url'   => '',
+		'months'        => true,  // Month headings under the year headings.
+		'see_all'       => true,
+		'empty'         => null,  // The empty-state text, if not the default.
 	);
 
 	private const HEADINGS = array( 'h2', 'h3', 'h4', 'h5' );
@@ -48,7 +51,8 @@ class AMHDB_Gigs_Renderer {
 		$entries = $data['gigs'] ?? array();
 
 		if ( ! $entries ) {
-			return '<div class="amhdb-gigs-list"><p class="amhdb-gigs__empty">' . esc_html__( 'No gigs recorded yet.', 'amhdb-gigs' ) . '</p></div>';
+			$empty = $this->opts['empty'] ?? __( 'No gigs recorded yet.', 'amhdb-gigs' );
+			return '<div class="amhdb-gigs-list"><p class="amhdb-gigs__empty">' . esc_html( $empty ) . '</p></div>';
 		}
 
 		// A list of one reads as a sentence, so it gets the full date.
@@ -56,12 +60,13 @@ class AMHDB_Gigs_Renderer {
 
 		$body = $this->opts['group_artists'] ? $this->by_artist( $entries ) : $this->by_date( $entries );
 
-		return '<div class="amhdb-gigs-list">' . $body . $this->see_all( $data, count( $entries ) ) . '</div>';
+		$see_all = $this->opts['see_all'] ? $this->see_all( $data, count( $entries ) ) : '';
+		return '<div class="amhdb-gigs-list">' . $body . $see_all . '</div>';
 	}
 
 	// ── Layouts ──────────────────────────────────────────────────────────────
 
-	/** Year headings, month headings under them, gigs under those. */
+	/** Year headings, month headings under them (unless turned off), gigs under those. */
 	private function by_date( array $entries ): string {
 		$groups = $this->group_by_date( $entries );
 		$out    = $this->opts['menu'] ? $this->date_menu( $groups ) : '';
@@ -75,6 +80,10 @@ class AMHDB_Gigs_Renderer {
 				esc_attr( $this->anchor( $year_key ) ),
 				esc_html( 'unknown' === $year_key ? __( 'Year unknown', 'amhdb-gigs' ) : (string) $year_key )
 			);
+			if ( ! $this->opts['months'] ) {
+				$out .= $this->gig_list( array_merge( ...array_values( $months ) ), false );
+				continue;
+			}
 			foreach ( $months as $month_key => $month_entries ) {
 				$out .= sprintf(
 					'<%1$s class="amhdb-gigs__month" id="%2$s">%3$s</%1$s>',

@@ -13,6 +13,7 @@ Requires WordPress 6.4+ and PHP 8.2+.
 [amhdb_gigs venue="bondi-lifesaver" sort="desc" limit="20"]
 [amhdb_gigs tag="rick-price-heaven-knows-tour-1992-93"]
 [amhdb_gigs year="1979" month="3" group_artists="yes"]
+[amhdb_gigs this_week="yes" per_day="2" random="yes" limit="10"]
 ```
 
 Slugs are the ones in AMHDB's URLs: `australianmusicdatabase.com/bands/bandanna` → `bandanna`.
@@ -25,8 +26,12 @@ Slugs are the ones in AMHDB's URLs: `australianmusicdatabase.com/bands/bandanna`
 | `tag` | AMHDB tag slug: tours. |
 | `year`, `month` | `month` needs `year`. Gigs whose year (or month) is unknown are left out. |
 | `from`, `to` | `YYYY-MM-DD`, inclusive. |
+| `this_week` | `yes`: today and the next six days, in any year, worked out in the site's timezone on every render: "This week in history". Only gigs with a full date. Combines with the other filters (`artist="bandanna" this_week="yes"`). |
+| `days` | With `this_week`: how many days, default 7. |
 | `sort` | `asc` (default) or `desc`. Year-unknown gigs always come last. |
 | `limit` | Show the first N, with a "See all N gigs in the Australian Music Database" link. |
+| `per_day` | At most N gigs for each day of the year, so one busy date can't fill a short list. The oldest N, unless `random="yes"`. Applied before `limit`. |
+| `random` | With `this_week` and `per_day`: `yes` picks each day's gigs at random. The pick changes daily and stays put all day. |
 | `group_artists` | `yes`: a heading per artist. `no` (default): year and month headings. |
 | `menu` | `yes`: a jump menu of anchor links to each year and month (or artist). |
 | `menu_count` | `yes`: gig counts in the jump menu. |
@@ -45,6 +50,7 @@ Filters combine with AND, and at least one is needed. Everything AMHDB has for t
 - The act's notes, and a "Source: …" line where AMHDB has one.
 - Act and venue names link to their AMH post where AMHDB knows one, otherwise to AMHDB. There's no link back to the page the list is on.
 - With no gigs: "No gigs recorded yet."
+- A `this_week` list has year headings only (oldest year first, or newest with `sort="desc"`), no "See all" link (AMHDB has no page for it), and "No gigs recorded for this week yet." when empty.
 
 ## Markup contract
 
@@ -83,6 +89,7 @@ The stylesheet (`assets/amhdb-gigs.css`, loaded only on pages with the shortcode
 - After the day is up, visitors get the last-good copy straight away and a background refresh (WP-Cron) fetches a new one. Refreshes send an ETag, so an unchanged list costs AMHDB a 304.
 - Only a list's very first view waits on AMHDB, with a 5-second timeout.
 - If AMHDB is down, the last-good copy is shown, and refreshes back off for 15 minutes between attempts.
+- A `this_week` list is a new list each day: its cache key includes the start date, and its last-good copy is only used on the same day (an older one would show the wrong week). Just after midnight site time, WP-Cron swaps each one for the new day's and fetches it.
 - With no copy at all, the list shows "This gig list is on the Australian Music Database", linking to the band, person or venue page.
 
 **Tools → AMHDB Gigs** lists every cached list with when it was fetched, and has **Refresh all now** and **Clear cache** buttons. The same from WP-CLI:

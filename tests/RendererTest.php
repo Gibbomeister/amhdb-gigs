@@ -212,4 +212,21 @@ class RendererTest extends AMHDB_Gigs_TestCase {
 		$xp = $this->dom( $this->render( array( $this->entry() ) ) );
 		$this->assertSame( 1, $xp->query( '/html/body/div/div[@class="amhdb-gigs-list"]' )->length );
 	}
+
+	public function test_without_month_headings() {
+		$xp = $this->dom( $this->render( array( $this->entry(), $this->entry( array( 'ids' => array( 2 ), 'date' => '1986-03-01', 'year' => 1986, 'month' => 3 ) ) ), array( 'months' => false ) ) );
+		$this->assertSame( 2, $xp->query( '//h3[@class="amhdb-gigs__year"]' )->length );
+		$this->assertSame( 0, $xp->query( '//*[@class="amhdb-gigs__month"]' )->length );
+		$this->assertSame( 2, $xp->query( '//h3/following-sibling::ul[1]/li[@class="amhdb-gig"]' )->length );
+	}
+
+	public function test_see_all_link_can_be_left_out() {
+		$xp = $this->dom( $this->render( array( $this->entry() ), array( 'see_all' => false ), array( 'count' => 217, 'see_all_url' => 'https://australianmusicdatabase.com/bands/bandanna' ) ) );
+		$this->assertSame( 0, $xp->query( '//p[@class="amhdb-gigs__see-all"]' )->length );
+	}
+
+	public function test_empty_state_text_can_be_changed() {
+		$xp = $this->dom( $this->render( array(), array( 'empty' => 'No gigs recorded for this week yet.' ) ) );
+		$this->assertSame( 'No gigs recorded for this week yet.', $this->text( $xp, '//p[@class="amhdb-gigs__empty"]' ) );
+	}
 }
