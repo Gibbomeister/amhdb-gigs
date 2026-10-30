@@ -161,7 +161,7 @@ class AMHDB_Gigs_Facts {
 		return array_map( fn( $lines ) => array_values( array_filter( $lines, 'strlen' ) ), $rows );
 	}
 
-	/** "Andy Cichon, vocals and guitar (1991–1994)". */
+	/** "Andy Cichon, vocals and guitar (1991–1994)": instruments, or AMHDB's details when there are none. */
 	private static function membership( array $m ): string {
 		$from  = $m['joined_year'] ?? null;
 		$until = $m['left_year'] ?? null;
@@ -176,7 +176,19 @@ class AMHDB_Gigs_Facts {
 		} else {
 			$years = '';
 		}
-		return self::join( array( $m['name'] ?? '', (string) ( $m['details'] ?? '' ) ) ) . ( $years ? " ($years)" : '' );
+		$role = self::and_list( $m['instruments'] ?? array() ) ?: (string) ( $m['details'] ?? '' );
+		return self::join( array( $m['name'] ?? '', $role ) ) . ( $years ? " ($years)" : '' );
+	}
+
+	/** "guitar, keyboards and backing vocals". */
+	private static function and_list( array $items ): string {
+		$items = array_values( array_filter( array_map( 'trim', $items ), 'strlen' ) );
+		if ( count( $items ) < 2 ) {
+			return $items[0] ?? '';
+		}
+		$last = array_pop( $items );
+		/* translators: 1: a list of instruments, 2: the last one */
+		return sprintf( __( '%1$s and %2$s', 'amhdb-gigs' ), implode( ', ', $items ), $last );
 	}
 
 	/** "31 (1991 to 1992)". */

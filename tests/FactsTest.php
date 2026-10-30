@@ -28,9 +28,10 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 				'amhdb_url'  => 'https://australianmusicdatabase.com/bands/judge-mercy',
 				'amh_url'    => 'https://australianmusichistory.com/judge-mercy/',
 				'members'    => array(
-					array( 'name' => 'Andy Cichon', 'details' => 'vocals and guitar', 'joined_year' => 1991, 'left_year' => 1994 ),
-					array( 'name' => 'Craig Foster', 'details' => null, 'joined_year' => 1992, 'left_year' => null ),
-					array( 'name' => 'Mick O\'Shea', 'details' => null, 'joined_year' => null, 'left_year' => null ),
+					array( 'name' => 'Andy Cichon', 'instruments' => array( 'vocals', 'guitar' ), 'details' => 'Founder', 'joined_year' => 1991, 'left_year' => 1994 ),
+					array( 'name' => 'Craig Foster', 'instruments' => array( 'bass' ), 'details' => null, 'joined_year' => 1992, 'left_year' => null ),
+					array( 'name' => 'Ismet Osmanovic', 'instruments' => array( 'guitar', 'keyboards', 'backing vocals' ), 'details' => null, 'joined_year' => null, 'left_year' => null ),
+					array( 'name' => 'Mick O\'Shea', 'instruments' => array(), 'details' => 'Drums', 'joined_year' => null, 'left_year' => null ),
 				),
 				'recordings' => array(
 					array( 'title' => 'Live With It', 'type' => 'EP', 'year' => 1991, 'month' => 6, 'label' => 'Mushroom', 'highest_position' => 42, 'weeks_in_chart' => 3, 'first_charted' => '1991-07-01' ),
@@ -90,7 +91,7 @@ class FactsTest extends AMHDB_Gigs_TestCase {
 		$this->assertStringStartsWith( '<div class="amh-card"><p class="amh-card-row"><span class="amh-card-label">', $html );
 		$this->assertSame(
 			array(
-				'Members'              => 'Andy Cichon, vocals and guitar (1991–1994)<br>Craig Foster (from 1992)<br>Mick O&#039;Shea',
+				'Members'              => 'Andy Cichon, vocals and guitar (1991–1994)<br>Craig Foster, bass (from 1992)<br>Ismet Osmanovic, guitar, keyboards and backing vocals<br>Mick O&#039;Shea, Drums',
 				'Recordings'           => 'Live With It, EP, 1991<br>Protocol So Holy, Album, 1993',
 				'Label'                => 'Mushroom',
 				'Charted'              => 'Live With It, No. 42 (1991)',
